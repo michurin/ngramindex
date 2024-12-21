@@ -7,7 +7,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    name: "Unit tests, codecov and lint"
+    name: "Linting"
     steps:
       - uses: actions/checkout@v4
       - uses: golangci/golangci-lint-action@v6
