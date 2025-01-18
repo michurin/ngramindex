@@ -2,6 +2,7 @@ package ngramindex_test
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/michurin/ngramindex"
@@ -70,7 +71,43 @@ func Example_textNormalization() {
 	// Luke_22:35
 }
 
-func Example_indexSettings() {
+func Example_customOrdeing() {
+	// Our documents
+	docs := map[string]string{
+		"Luke_22:35": `Then Jesus asked them, "When I sent you without purse, bag or sandals, did you lack anything?" "Nothing," they answered.`,
+		"Luke_22:36": `He said to them, "But now if you have a purse, take it, and also a bag; and if you don’t have a sword, sell your cloak and buy one.`,
+		"Luke_22:37": `It is written: 'And he was numbered with the transgressors'; and I tell you that this must be fulfilled in me. Yes, what is written about me is reaching its fulfillment."`,
+		"Luke_22:38": `The disciples said, "See, Lord, here are two swords." "That’s enough!" he replied.`,
+	}
+
+	// In our "database" the type of index is string (T=string).
+	// It could be integer, path string, [os.DirEntry], or anything else.
+	ngIdx := ngramindex.StringIndex[string]()
+
+	// Associate texts (v) with document's indexes (k)
+	for k, v := range docs {
+		ngIdx.Add(v, k)
+	}
+
+	// Lookup for "sword"
+	// 22:38 wins because "Lord" is also matching with "ord" (end of "sword")
+	// Lookup doesn't sort documents, it returns detailed matching information.
+	results := ngIdx.Lookup("sword")
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].MatchRate < results[j].MatchRate // sort in reverse order: best matches last
+	})
+
+	for _, v := range results {
+		fmt.Printf("%d/%3d = %.3f %q\n", v.MatchedNgrams, v.TotalNgrams, v.MatchRate, v.Document)
+	}
+
+	// output:
+	// 3/128 = 0.023 "Luke_22:36"
+	// 4/ 79 = 0.051 "Luke_22:38"
+}
+
+func Example_indexSettingsWithNgramLen() {
 	ngIdx := ngramindex.StringIndex(ngramindex.WithNgramIndex(ngramindex.Index[int](ngramindex.WithNgramLen(2))))
 
 	ngIdx.Add("what", 1)

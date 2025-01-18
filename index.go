@@ -6,13 +6,18 @@ import (
 
 const defaultNgramLen = 3
 
+type docInfo[T any] struct {
+	doc        T
+	ngramCount int
+}
+
 // NgramIndex low-level rune-based implementation. Trigram by default (see [Index] and [WithNgramLen] option).
 //
 // You might want to use [StringNgramIndex] that works with strings
 // and provides string normalization.
 type NgramIndex[T any] struct {
 	idx          map[string][]int
-	docs         []T
+	docs         []docInfo[T]
 	ngramLen     int
 	cutOffWeight int
 }
@@ -42,7 +47,10 @@ func (ni *NgramIndex[T]) Add(text []rune, doc T) {
 	}
 
 	idx := len(ni.docs)
-	ni.docs = append(ni.docs, doc)
+	ni.docs = append(ni.docs, docInfo[T]{
+		doc:        doc,
+		ngramCount: len(text) - ni.ngramLen,
+	})
 
 	for i := 0; i < len(text)-ni.ngramLen+1; i++ {
 		ngram := string(text[i : i+ni.ngramLen])
@@ -50,7 +58,34 @@ func (ni *NgramIndex[T]) Add(text []rune, doc T) {
 	}
 }
 
+// Search is slightly oversimplified method. It returns sorted results.
 func (ni *NgramIndex[T]) Search(text []rune) []T {
+	filtered := ni.lookup(text)
+
+	sort.Slice(filtered, func(i, j int) bool {
+		return filtered[i].MatchedNgrams > filtered[j].MatchedNgrams
+	})
+
+	res := make([]T, len(filtered))
+	for i, v := range filtered {
+		res[i] = v.Document
+	}
+
+	return res
+}
+
+type Match[T any] struct {
+	Document      T       // Document itself
+	TotalNgrams   int     // Total ngrams in document
+	MatchedNgrams int     // Matched
+	MatchRate     float64 // Literally MatchedNgrams/TotalNgrams
+}
+
+func (ni *NgramIndex[T]) Lookup(text []rune) []Match[T] {
+	return ni.lookup(text)
+}
+
+func (ni *NgramIndex[T]) lookup(text []rune) []Match[T] {
 	if len(text) < ni.ngramLen {
 		return nil
 	}
@@ -64,26 +99,27 @@ func (ni *NgramIndex[T]) Search(text []rune) []T {
 	}
 
 	info := []struct {
-		doc   T
+		doc   docInfo[T]
 		count int
 	}(nil)
 
 	for i, v := range cfg {
 		if v > ni.cutOffWeight {
 			info = append(info, struct {
-				doc   T
+				doc   docInfo[T]
 				count int
 			}{ni.docs[i], v})
 		}
 	}
 
-	sort.Slice(info, func(i, j int) bool {
-		return info[i].count > info[j].count
-	})
-
-	res := make([]T, len(info))
+	res := make([]Match[T], len(info))
 	for i, v := range info {
-		res[i] = v.doc
+		res[i] = Match[T]{
+			Document:      v.doc.doc,
+			TotalNgrams:   v.doc.ngramCount,
+			MatchedNgrams: v.count,
+			MatchRate:     float64(v.count) / float64(v.doc.ngramCount),
+		}
 	}
 
 	return res
@@ -124,8 +160,14 @@ func (si *StringNgramIndex[T]) Add(text string, doc T) {
 	si.idx.Add(si.normolizer(text), doc)
 }
 
+// Search is simple wrapper around [NgramIndex.Search] with text normalization.
 func (si *StringNgramIndex[T]) Search(text string) []T {
 	return si.idx.Search(si.normolizer(text))
+}
+
+// Lookup is simple wrapper around [NgramIndex.Lookup] with text normalization.
+func (si *StringNgramIndex[T]) Lookup(text string) []Match[T] {
+	return si.idx.Lookup(si.normolizer(text))
 }
 
 type StringIndexOption[T any] func(*StringNgramIndex[T])
