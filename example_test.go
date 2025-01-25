@@ -23,7 +23,7 @@ func Example_basic() {
 
 	// Associate texts (v) with document's indexes (k)
 	for k, v := range docs {
-		ngIdx.Add(v, k)
+		ngIdx.Add(k, v)
 	}
 
 	// Search for "sword"
@@ -52,14 +52,14 @@ func Example_textNormalization() {
 	// Obviously, it is useful for things like
 	// spaces normalization, punctuation skipping an so on.
 	ngIdx := ngramindex.StringIndex(
-		ngramindex.WithNormolizer[string](func(s string) []rune {
-			return []rune(strings.ToLower(strings.ReplaceAll(s, "ú", "u")))
+		ngramindex.WithNormolizer[string](func(s string) [][]rune {
+			return [][]rune{[]rune(strings.ToLower(strings.ReplaceAll(s, "ú", "u")))}
 		}),
 	)
 
 	// Associate texts (v) with document's indexes (k)
 	for k, v := range docs {
-		ngIdx.Add(v, k)
+		ngIdx.Add(k, v)
 	}
 
 	results := ngIdx.Search("JESÚS") // we will find "Jesus" in 22:35
@@ -86,7 +86,7 @@ func Example_customOrdeing() {
 
 	// Associate texts (v) with document's indexes (k)
 	for k, v := range docs {
-		ngIdx.Add(v, k)
+		ngIdx.Add(k, v)
 	}
 
 	// Lookup for "sword"
@@ -103,15 +103,15 @@ func Example_customOrdeing() {
 	}
 
 	// output:
-	// 3/128 = 0.023 "Luke_22:36"
-	// 4/ 79 = 0.051 "Luke_22:38"
+	// 3/129 = 0.023 "Luke_22:36"
+	// 4/ 80 = 0.050 "Luke_22:38"
 }
 
 func Example_indexSettingsWithNgramLen() {
 	ngIdx := ngramindex.StringIndex(ngramindex.WithNgramIndex(ngramindex.Index[int](ngramindex.WithNgramLen(2))))
 
-	ngIdx.Add("what", 1)
-	ngIdx.Add("that", 2)
+	ngIdx.Add(1, "what")
+	ngIdx.Add(2, "that")
 
 	results := ngIdx.Search("with") // "th" is common in "with" and "that"
 	fmt.Println(results)

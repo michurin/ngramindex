@@ -19,6 +19,7 @@ The package offers advantages:
 - Adjustable text normalization to manage things like case sensibility, spaces and punctuation handling, extra typos tolerance etc.
 - Simple ranking algorithm out of the box.
 - Ability to customize ranking algorithm entirely up to your implementation of less-function for sorting.
+- Ability to associate one document with several texts and lookup by several texts
 
 ## Examples
 

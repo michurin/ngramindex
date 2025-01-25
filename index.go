@@ -41,26 +41,29 @@ func Index[T any](opts ...Option) *NgramIndex[T] {
 // For example, concatenation of title and body.
 // The doc can be any pointer to "document":
 // index in DB, path in a filesystem, [io/fs.DirEntry], or anything else.
-func (ni *NgramIndex[T]) Add(text []rune, doc T) {
-	if len(text) < ni.ngramLen {
-		return
+func (ni *NgramIndex[T]) Add(doc T, texts ...[]rune) {
+	idx := len(ni.docs) // index of next document in slice
+	ngrams := 0         // number of n-grams
+
+	for _, text := range texts {
+		for i := 0; i < len(text)-ni.ngramLen+1; i++ {
+			ngram := string(text[i : i+ni.ngramLen])
+			ni.idx[ngram] = append(ni.idx[ngram], idx)
+			ngrams++
+		}
 	}
 
-	idx := len(ni.docs)
-	ni.docs = append(ni.docs, docInfo[T]{
-		doc:        doc,
-		ngramCount: len(text) - ni.ngramLen,
-	})
-
-	for i := 0; i < len(text)-ni.ngramLen+1; i++ {
-		ngram := string(text[i : i+ni.ngramLen])
-		ni.idx[ngram] = append(ni.idx[ngram], idx)
+	if ngrams > 0 {
+		ni.docs = append(ni.docs, docInfo[T]{
+			doc:        doc,
+			ngramCount: ngrams,
+		})
 	}
 }
 
 // Search is slightly oversimplified method. It returns sorted results.
-func (ni *NgramIndex[T]) Search(text []rune) []T {
-	filtered := ni.lookup(text)
+func (ni *NgramIndex[T]) Search(texts ...[]rune) []T {
+	filtered := ni.lookup(texts)
 
 	sort.Slice(filtered, func(i, j int) bool {
 		return filtered[i].MatchedNgrams > filtered[j].MatchedNgrams
@@ -81,20 +84,18 @@ type Match[T any] struct {
 	MatchRate     float64 // Literally MatchedNgrams/TotalNgrams
 }
 
-func (ni *NgramIndex[T]) Lookup(text []rune) []Match[T] {
-	return ni.lookup(text)
+func (ni *NgramIndex[T]) Lookup(texts ...[]rune) []Match[T] {
+	return ni.lookup(texts)
 }
 
-func (ni *NgramIndex[T]) lookup(text []rune) []Match[T] {
-	if len(text) < ni.ngramLen {
-		return nil
-	}
-
+func (ni *NgramIndex[T]) lookup(texts [][]rune) []Match[T] {
 	cfg := make([]int, len(ni.docs))
 
-	for i := 0; i < len(text)-ni.ngramLen+1; i++ {
-		for _, idx := range ni.idx[string(text[i:i+ni.ngramLen])] {
-			cfg[idx]++
+	for _, text := range texts {
+		for i := 0; i < len(text)-ni.ngramLen+1; i++ {
+			for _, idx := range ni.idx[string(text[i:i+ni.ngramLen])] {
+				cfg[idx]++
+			}
 		}
 	}
 
@@ -138,7 +139,7 @@ func WithNgramLen(ngramLen int) Option {
 // StringNgramIndex is convenient wrapper around [NgramIndex].
 type StringNgramIndex[T any] struct {
 	idx        *NgramIndex[T]
-	normolizer func(string) []rune
+	normolizer func(string) [][]rune
 }
 
 // StringIndex is convenient wrapper around [Index], it
@@ -146,7 +147,7 @@ type StringNgramIndex[T any] struct {
 func StringIndex[T any](opts ...StringIndexOption[T]) *StringNgramIndex[T] {
 	idx := &StringNgramIndex[T]{
 		idx:        Index[T](),
-		normolizer: func(s string) []rune { return []rune(s) },
+		normolizer: func(s string) [][]rune { return [][]rune{[]rune(s)} },
 	}
 	for _, opt := range opts {
 		opt(idx)
@@ -156,23 +157,32 @@ func StringIndex[T any](opts ...StringIndexOption[T]) *StringNgramIndex[T] {
 }
 
 // Add normalizes text and send it to [NgramIndex.Add].
-func (si *StringNgramIndex[T]) Add(text string, doc T) {
-	si.idx.Add(si.normolizer(text), doc)
+func (si *StringNgramIndex[T]) Add(doc T, texts ...string) {
+	si.idx.Add(doc, si.normolize(texts)...)
 }
 
 // Search is simple wrapper around [NgramIndex.Search] with text normalization.
-func (si *StringNgramIndex[T]) Search(text string) []T {
-	return si.idx.Search(si.normolizer(text))
+func (si *StringNgramIndex[T]) Search(texts ...string) []T {
+	return si.idx.Search(si.normolize(texts)...)
 }
 
 // Lookup is simple wrapper around [NgramIndex.Lookup] with text normalization.
-func (si *StringNgramIndex[T]) Lookup(text string) []Match[T] {
-	return si.idx.Lookup(si.normolizer(text))
+func (si *StringNgramIndex[T]) Lookup(texts ...string) []Match[T] {
+	return si.idx.Lookup(si.normolize(texts)...)
+}
+
+func (si *StringNgramIndex[T]) normolize(texts []string) [][]rune {
+	args := make([][]rune, 0, len(texts)) // we just suppose equality
+	for _, text := range texts {
+		args = append(args, si.normolizer(text)...)
+	}
+
+	return args
 }
 
 type StringIndexOption[T any] func(*StringNgramIndex[T])
 
-func WithNormolizer[T any](f func(string) []rune) StringIndexOption[T] {
+func WithNormolizer[T any](f func(string) [][]rune) StringIndexOption[T] {
 	return func(si *StringNgramIndex[T]) { si.normolizer = f }
 }
 

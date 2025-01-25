@@ -9,8 +9,8 @@ func TestIndex_tooShort(t *testing.T) { // major part of code coverage comes fro
 
 	ngIdx := Index[int]()
 
-	ngIdx.Add([]rune("ab"), 1)
-	ngIdx.Add([]rune("abc"), 2)
+	ngIdx.Add(1, []rune("ab"))
+	ngIdx.Add(2, []rune("abc"))
 
 	if len(ngIdx.docs) != 1 {
 		t.Error("Expected 1 document, but got:", len(ngIdx.docs))
