@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/michurin/ngramindex/graph/badge.svg?token=E9VIN7R58G)](https://codecov.io/gh/michurin/ngramindex)
 [![Go Report Card](https://goreportcard.com/badge/github.com/michurin/ngramindex)](https://goreportcard.com/report/github.com/michurin/ngramindex)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/github.com/michurin/ngramindex)
-[![go.dev play](https://shields.io/badge/go.dev-play-089?logo=go&logoColor=white&style=flat)](https://go.dev/play/p/yegNQQ9riTD)
+[![go.dev play](https://shields.io/badge/go.dev-play-089?logo=go&logoColor=white&style=flat)](https://go.dev/play/p/QClnrDlruau)
 
 N-gram indexing is a simple and powerful lookup technique. It is based on approximate (fuzzy) string matching.
 
@@ -23,7 +23,7 @@ The package offers advantages:
 
 ## Examples
 
-- [Life example](https://go.dev/play/p/yegNQQ9riTD).
+- [Life example](https://go.dev/play/p/QClnrDlruau).
 - [Examples in documentation](https://pkg.go.dev/github.com/michurin/ngramindex), [the same examples right in this repository](https://github.com/michurin/ngramindex/blob/master/example_test.go).
 
 ## Known issues
