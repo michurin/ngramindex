@@ -1,18 +1,40 @@
+version: "2"
 linters:
-  enable-all: true
+  default: all
   disable:
-    - exportloopref # deprecated
     - copyloopvar # too modern
-    - intrange    # too modern
-    - depguard    # too smart
     - godox       # has to be enabled
-
-linters-settings:
-#  gci:
-#    sections:
-#      - standard
-#      - default
-#      - prefix(github.com/michurin/ngramindex)
-  lll: {line-length: 200}
-#  funlen: {statements: 150, lines: 150} # parsers are long
-#  cyclop: {max-complexity: 50}          # and "complex"
+    - intrange    # too modern
+  settings:
+    lll:
+      line-length: 200
+    depguard:
+      rules:
+        test:
+          files:
+            - "*_test.go"
+          allow:
+            - github.com/michurin/ngramindex
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
