@@ -5,6 +5,7 @@ linters:
     - copyloopvar # too modern
     - godox       # has to be enabled
     - intrange    # too modern
+    - revive      # nice to be enabled
   settings:
     lll:
       line-length: 200
@@ -12,29 +13,13 @@ linters:
       rules:
         test:
           files:
-            - "*_test.go"
+            - "$test"
           allow:
+            - "$gostd"
             - github.com/michurin/ngramindex
-  exclusions:
-    generated: lax
-    presets:
-      - comments
-      - common-false-positives
-      - legacy
-      - std-error-handling
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
 formatters:
   enable:
     - gci
     - gofmt
     - gofumpt
     - goimports
-  exclusions:
-    generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
