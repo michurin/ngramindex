@@ -6,6 +6,7 @@ linters:
     - godox       # has to be enabled
     - intrange    # too modern
     - revive      # nice to be enabled
+    - wsl         # deprecated due to wsl_v5
   settings:
     lll:
       line-length: 200
