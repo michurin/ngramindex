@@ -4,7 +4,6 @@
 [![test](https://github.com/michurin/ngramindex/actions/workflows/test.yaml/badge.svg)](https://github.com/michurin/ngramindex/actions/workflows/test.yaml)
 [![codecov](https://github.com/michurin/ngramindex/actions/workflows/codecov.yaml/badge.svg)](https://github.com/michurin/ngramindex/actions/workflows/codecov.yaml)
 [![codecov](https://codecov.io/gh/michurin/ngramindex/graph/badge.svg?token=E9VIN7R58G)](https://codecov.io/gh/michurin/ngramindex)
-[![Go Report Card](https://goreportcard.com/badge/github.com/michurin/ngramindex)](https://goreportcard.com/report/github.com/michurin/ngramindex)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/github.com/michurin/ngramindex)
 [![go.dev play](https://shields.io/badge/go.dev-play-089?logo=go&logoColor=white&style=flat)](https://go.dev/play/p/QClnrDlruau)
 
